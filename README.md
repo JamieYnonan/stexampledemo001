@@ -1,3 +1,11 @@
+# stdemo001
+
+Este repositorio servirá de soporte a los posts en [Medium](https://medium.com/@jamieynonan) sobre Terraform e IaC.
+
+| Post | Branch |
+|------|--------|
+| [Escalando IaC en tu Organización: Del Módulo al Template de Despliegue con GitHub Actions](https://medium.com/@jamieynonan/escalando-iac-en-tu-organizacion-del-modulo-al-template-de-despliegue-con-github-actions-d582a21b1d68) | master |
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
