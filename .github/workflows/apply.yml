@@ -12,6 +12,11 @@ on:
 concurrency:
   group: ${{ github.ref_name }}
 
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
 jobs:
 
   terraform-version:
@@ -34,6 +39,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: Install Conftest
+        run: |
+          set -e
+          VER="0.52.0"
+          curl -sSL -o conftest.tar.gz https://github.com/open-policy-agent/conftest/releases/download/v${VER}/conftest_${VER}_Linux_x86_64.tar.gz
+          tar -xzf conftest.tar.gz
+          sudo mv conftest /usr/local/bin/conftest
+          conftest --version
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -52,13 +66,18 @@ jobs:
 
       - name: Terraform Plan ${{ inputs.destroy == 'true' && 'Destroy' }}
         run: |
-          terraform plan $([[ "${{ inputs.destroy }}" == "true" ]] && echo "-destroy") -input=false -out=tfplan
+          terraform plan $([[ "${{ inputs.destroy }}" == "true" ]] && echo "-destroy") -input=false -out=tfplan -no-color
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+
+      - name: Run Conftest
+        run: |
+          terraform show -json tfplan | conftest test -p policy/ --namespace policy.azure.storage -
+
 
       - name: Terraform Apply ${{ inputs.destroy == 'true' && 'Destroy' }}
         run: |
